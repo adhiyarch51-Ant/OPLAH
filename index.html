@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MY MAP PAKET 1 & 2</title>
+    <title>Dashboard MyMap Paket 1 & 2</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar styling for horizontal button bar */
+        /* Custom scrollbar horizontal untuk tombol navigasi */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -24,255 +24,283 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 flex flex-col h-screen overflow-hidden">
+<body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden">
 
-    <!-- Compact Top Header -->
-    <header class="bg-slate-800/95 backdrop-blur border-b border-slate-700/80 px-4 py-2 shrink-0 z-30 shadow-md">
-        <div class="max-w-full mx-auto flex items-center justify-between">
-            <!-- Logo & Title -->
-            <div class="flex items-center space-x-2.5">
-                <div class="p-1.5 bg-blue-600 rounded-md text-white shadow-sm shadow-blue-500/20">
-                    <i class="fa-solid fa-map-location-dot text-base"></i>
+    <!-- HEADER & TOOLBAR CONTAINER -->
+    <header class="bg-slate-800 border-b border-slate-700 shadow-md flex-none">
+        <div class="px-3 py-2 flex flex-col md:flex-row md:items-center justify-between gap-2">
+            
+            <!-- LOGO & BRANDING -->
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-map-location-dot text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-sm sm:text-base text-white tracking-wide leading-tight">MY MAP PAKET 1 & 2</h1>
-                    <p class="text-[10px] sm:text-xs text-slate-400">Dashboard Pemantauan & Peta Lokasi Project</p>
+                    <h1 class="text-base font-bold leading-tight tracking-wide text-white">MY MAP PAKET 1 & 2</h1>
+                    <p class="text-xs text-slate-400">Pusat Navigasi & Monitoring Lokasi Proyek</p>
                 </div>
             </div>
 
-            <!-- Header Action Controls -->
-            <div class="flex items-center space-x-2">
-                <a id="external-link-btn" href="#" target="_blank" rel="noopener noreferrer" 
-                   class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 transition-all border border-slate-600">
-                    <i class="fa-solid fa-arrow-up-right-from-square mr-1.5 text-blue-400 text-xs"></i>
-                    <span class="hidden sm:inline">Buka Tab Baru</span>
-                    <span class="sm:hidden">Buka</span>
-                </a>
-                <button id="fullscreen-btn" onclick="toggleFullScreen()" 
-                        class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-sm">
-                    <i id="fullscreen-icon" class="fa-solid fa-expand mr-1.5 text-xs"></i>
-                    <span id="fullscreen-text" class="hidden sm:inline">Layar Penuh</span>
-                </button>
+            <!-- CONTROLS / ACTION BUTTONS -->
+            <div class="flex items-center justify-between md:justify-end gap-2 text-xs">
+                <!-- ACTIVE BADGE -->
+                <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-slate-400">Lokasi:</span>
+                    <span id="activeBadge" class="font-semibold text-blue-400 uppercase">DI CIBANTEN</span>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <!-- Buka Tab Baru -->
+                    <a id="externalLinkBtn" href="#" target="_blank" title="Buka di Tab Baru"
+                        class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 border border-slate-600">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span class="hidden sm:inline">Buka Tab Baru</span>
+                    </a>
+
+                    <!-- Mode Fullscreen Map -->
+                    <button id="fullscreenBtn" title="Layar Penuh" onclick="toggleFullScreen()"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-md shadow-blue-600/30">
+                        <i class="fa-solid fa-expand"></i>
+                        <span class="hidden sm:inline">Layar Penuh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LOCATION BUTTONS (HORIZONTAL BAR) -->
+        <div class="bg-slate-850 px-3 py-1.5 border-t border-slate-700/80 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
+                <i class="fa-solid fa-layer-group text-blue-400"></i> Peta:
+            </span>
+            <div id="mainButtonContainer" class="flex items-center gap-1.5">
+                <!-- Main buttons rendered dynamically -->
+            </div>
+        </div>
+
+        <!-- SUB 360 NAV BAR (Muncul Hanya Saat Mode 360 Aktif) -->
+        <div id="sub360Bar" class="hidden bg-slate-900/90 border-t border-blue-900/50 px-3 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
+                <i class="fa-solid fa-vr-cardboard"></i> Opsi 360°:
+            </span>
+            <div id="sub360ButtonContainer" class="flex items-center gap-1.5">
+                <!-- Sub 360 buttons rendered dynamically -->
             </div>
         </div>
     </header>
 
-    <!-- Compact Horizontal Buttons Navigation Bar -->
-    <div class="bg-slate-800/80 border-b border-slate-700/80 px-3 py-1.5 shrink-0 shadow-inner">
-        <div class="max-w-full mx-auto flex items-center gap-2">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider hidden lg:flex items-center gap-1.5 shrink-0 mr-1">
-                <i class="fa-solid fa-layer-group text-blue-400"></i> Lokasi:
-            </span>
-            
-            <nav id="location-buttons-container" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full py-0.5">
-                <!-- Dynamic Location Buttons injected here -->
-            </nav>
+    <!-- MAP / VIRTUAL TOUR VIEW AREA -->
+    <main class="flex-1 relative bg-slate-950 w-full h-full overflow-hidden">
+        <!-- Loading Indicator -->
+        <div id="mapLoader" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 transition-opacity duration-300">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
+            <p id="loaderText" class="text-slate-300 text-sm font-medium">Memuat peta interaktif...</p>
         </div>
-    </div>
 
-    <!-- Main Map Display Section (Maximizes Remaining Space) -->
-    <main class="flex-1 w-full min-h-0 relative overflow-hidden">
-        <div id="map-wrapper" class="w-full h-full bg-slate-900 flex flex-col relative">
-            
-            <!-- Compact Active Map Info Bar -->
-            <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700 px-3 py-1.5 flex items-center justify-between z-10 shrink-0">
-                <div class="flex items-center space-x-2">
-                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <span id="current-location-title" class="font-semibold text-white text-xs sm:text-sm">DI CIBANTEN</span>
-                </div>
-                <span id="current-mid-badge" class="font-mono text-[10px] sm:text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-700/60">
-                    MID: 1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs
-                </span>
-            </div>
-
-            <!-- Loader Indicator -->
-            <div id="loading-spinner" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center transition-opacity duration-300">
-                <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                <span class="text-xs font-medium text-slate-300">Memuat Peta...</span>
-            </div>
-
-            <!-- Full Height Google Maps iframe -->
-            <div class="w-full flex-1 relative min-h-0">
-                <iframe id="map-frame" 
-                        src="https://www.google.com/maps/d/embed?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs" 
-                        class="absolute inset-0 w-full h-full border-0" 
-                        allowfullscreen="" 
-                        loading="lazy" 
-                        title="Map / Virtual Tour Viewer"
-                        onload="hideLoading()">
-                </iframe>
-            </div>
-        </div>
+        <!-- Main Iframe Container -->
+        <iframe id="mapFrame" 
+            src="" 
+            class="w-full h-full border-0 relative z-0"
+            allowfullscreen 
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
     </main>
 
-    <!-- Application Script -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Data Locations Configuration
+        // Data Utama MyMaps
         const locations = [
             {
                 id: 1,
                 name: "DI CIBANTEN",
-                type: "mymaps",
-                url: "https://www.google.com/maps/d/embed?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs",
                 mid: "1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs",
-                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs&usp=sharing",
-                icon: "fa-water"
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs&usp=sharing"
             },
             {
                 id: 2,
                 name: "DI CIWAKA BAWAH",
-                type: "mymaps",
-                url: "https://www.google.com/maps/d/embed?mid=1WllfuisO-Bczg1gGnpplO9fi-rNJu5w",
                 mid: "1WllfuisO-Bczg1gGnpplO9fi-rNJu5w",
-                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1WllfuisO-Bczg1gGnpplO9fi-rNJu5w&usp=sharing",
-                icon: "fa-river"
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1WllfuisO-Bczg1gGnpplO9fi-rNJu5w&usp=sharing"
             },
             {
                 id: 3,
                 name: "DI CIKALUMPANG",
-                type: "mymaps",
-                url: "https://www.google.com/maps/d/embed?mid=1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs",
                 mid: "1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs",
-                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs&usp=sharing",
-                icon: "fa-mountain-sun"
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs&usp=sharing"
             },
             {
                 id: 4,
                 name: "DI CISAIT",
-                type: "mymaps",
-                url: "https://www.google.com/maps/d/embed?mid=1qukq1JugOVPw-OSywdR1_o0E9KgzPVM",
                 mid: "1qukq1JugOVPw-OSywdR1_o0E9KgzPVM",
-                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1qukq1JugOVPw-OSywdR1_o0E9KgzPVM&usp=sharing",
-                icon: "fa-compass-drafting"
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1qukq1JugOVPw-OSywdR1_o0E9KgzPVM&usp=sharing"
             },
             {
                 id: 5,
                 name: "DI KALI KARAD",
-                type: "mymaps",
-                url: "https://www.google.com/maps/d/embed?mid=1ggYMlgFLSUkIBOmP23lt1NPdJirAeys",
                 mid: "1ggYMlgFLSUkIBOmP23lt1NPdJirAeys",
-                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1ggYMlgFLSUkIBOmP23lt1NPdJirAeys&usp=sharing",
-                icon: "fa-bridge"
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1ggYMlgFLSUkIBOmP23lt1NPdJirAeys&usp=sharing"
             },
             {
                 id: 6,
                 name: "360",
-                type: "kuula",
+                is360Group: true
+            }
+        ];
+
+        // Daftar lokasi khusus 360 (Cisait Kuula, Kali Karad 1 & 2 Momento360)
+        const sub360Locations = [
+            {
+                id: "360-cisait",
+                name: "DI CISAIT",
                 url: "https://kuula.co/share/collection/7dlvr?logo=1&info=1&fs=1&vr=0&sd=1&thumbs=1",
-                mid: "KUULA-360-TOUR",
-                editUrl: "https://kuula.co/share/collection/7dlvr?logo=1&info=1&fs=1&vr=0&sd=1&thumbs=1",
-                icon: "fa-vr-cardboard"
+                badge: "KUULA 360° - CISAIT",
+                editUrl: "https://kuula.co/share/collection/7dlvr"
+            },
+            {
+                id: "360-kk1",
+                name: "DI KALI KARAD 1",
+                url: "https://momento360.com/e/u/dd9bdd525959454abb28061be968bdf4?utm_campaign=embed&utm_source=other&utm_medium=embed&heading=0&pitch=0&field-of-view=75&size=medium&autoplay-annotations=true",
+                badge: "MOMENTO360 - KALI KARAD 1",
+                editUrl: "https://momento360.com/e/u/dd9bdd525959454abb28061be968bdf4"
+            },
+            {
+                id: "360-kk2",
+                name: "DI KALI KARAD 2",
+                url: "https://momento360.com/e/u/67d36ff594204e099d292b47dc355c2a?utm_campaign=embed&utm_source=other&utm_medium=embed&heading=0&pitch=0&field-of-view=75&size=medium&autoplay-annotations=true",
+                badge: "MOMENTO360 - KALI KARAD 2",
+                editUrl: "https://momento360.com/e/u/67d36ff594204e099d292b47dc355c2a"
             }
         ];
 
         let activeLocationId = 1;
+        let activeSub360Id = "360-cisait";
 
-        // Render Location Buttons Horizontally
-        function renderLocationButtons() {
-            const container = document.getElementById('location-buttons-container');
-            container.innerHTML = '';
+        // Render Tombol Utama
+        function renderMainButtons() {
+            const container = document.getElementById("mainButtonContainer");
+            container.innerHTML = "";
 
             locations.forEach(loc => {
+                const btn = document.createElement("button");
                 const isActive = loc.id === activeLocationId;
-                
-                const btn = document.createElement('button');
-                btn.onclick = () => selectLocation(loc.id);
-                btn.className = `flex-none px-3 py-1.5 rounded-md transition-all flex items-center space-x-2 text-xs whitespace-nowrap border ${
-                    isActive 
-                        ? 'bg-blue-600 text-white font-medium border-blue-400 shadow-md shadow-blue-600/30 ring-1 ring-blue-400' 
-                        : 'bg-slate-700/60 hover:bg-slate-700 text-slate-200 border-slate-600/60 hover:border-slate-500'
-                }`;
 
-                btn.innerHTML = `
-                    <i class="fa-solid ${loc.icon || 'fa-location-dot'} ${isActive ? 'text-white' : 'text-blue-400'} text-xs"></i>
-                    <span>${loc.name}</span>
-                `;
+                if (loc.is360Group) {
+                    btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                        isActive
+                            ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-bold"
+                            : "bg-slate-700/60 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-amber-500/30"
+                    }`;
+                    btn.innerHTML = `<i class="fa-solid fa-vr-cardboard"></i> ${loc.name}`;
+                } else {
+                    btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                        isActive
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 font-bold"
+                            : "bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-600/50"
+                    }`;
+                    btn.innerHTML = `<i class="fa-solid fa-location-dot ${isActive ? 'text-white' : 'text-blue-400'}"></i> ${loc.name}`;
+                }
 
+                btn.onclick = () => selectMainLocation(loc.id);
                 container.appendChild(btn);
             });
         }
 
-        // Select and Switch Map / Virtual Tour
-        function selectLocation(id) {
-            if (activeLocationId === id) return;
-            
-            const loc = locations.find(l => l.id === id);
-            if (!loc) return;
+        // Render Sub-Tombol 360
+        function renderSub360Buttons() {
+            const container = document.getElementById("sub360ButtonContainer");
+            container.innerHTML = "";
 
+            sub360Locations.forEach(sub => {
+                const btn = document.createElement("button");
+                const isActive = sub.id === activeSub360Id;
+
+                btn.className = `px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    isActive
+                        ? "bg-amber-500 text-slate-950 shadow font-bold"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700"
+                }`;
+                btn.innerHTML = `<i class="fa-solid fa-camera-retro ${isActive ? 'text-slate-950' : 'text-amber-400'}"></i> ${sub.name}`;
+
+                btn.onclick = () => selectSub360(sub.id);
+                container.appendChild(btn);
+            });
+        }
+
+        // Pilih Lokasi Utama
+        function selectMainLocation(id) {
             activeLocationId = id;
-            
-            // Show Loader
-            showLoading();
+            renderMainButtons();
 
-            // Update Frame URL
-            const iframe = document.getElementById('map-frame');
-            iframe.src = loc.url;
+            const sub360Bar = document.getElementById("sub360Bar");
+            const loc = locations.find(l => l.id === id);
 
-            // Update Header Info
-            document.getElementById('current-location-title').textContent = loc.name;
-            document.getElementById('current-mid-badge').textContent = loc.type === 'kuula' ? 'VIRTUAL TOUR 360°' : `MID: ${loc.mid}`;
-            document.getElementById('external-link-btn').href = loc.editUrl;
-
-            // Re-render Navigation Buttons to update Active State
-            renderLocationButtons();
+            if (loc.is360Group) {
+                sub360Bar.classList.remove("hidden");
+                renderSub360Buttons();
+                selectSub360(activeSub360Id);
+            } else {
+                sub360Bar.classList.add("hidden");
+                
+                const embedUrl = `https://www.google.com/maps/d/embed?mid=${loc.mid}&ehbc=2E312F`;
+                loadIframe(embedUrl, loc.name, loc.editUrl);
+            }
         }
 
-        // Loader Functions
-        function showLoading() {
-            const spinner = document.getElementById('loading-spinner');
-            spinner.classList.remove('opacity-0', 'pointer-events-none');
+        // Pilih Sub-360 Lokasi
+        function selectSub360(subId) {
+            activeSub360Id = subId;
+            renderSub360Buttons();
+
+            const sub = sub360Locations.find(s => s.id === subId);
+            if (sub) {
+                loadIframe(sub.url, sub.badge, sub.editUrl);
+            }
         }
 
-        function hideLoading() {
-            const spinner = document.getElementById('loading-spinner');
-            spinner.classList.add('opacity-0', 'pointer-events-none');
+        // Panggil Iframe dengan loader
+        function loadIframe(url, badgeText, externalUrl) {
+            const iframe = document.getElementById("mapFrame");
+            const loader = document.getElementById("mapLoader");
+            const activeBadge = document.getElementById("activeBadge");
+            const externalBtn = document.getElementById("externalLinkBtn");
+            const loaderText = document.getElementById("loaderText");
+
+            loaderText.innerText = `Memuat ${badgeText}...`;
+            loader.classList.remove("opacity-0", "pointer-events-none");
+
+            activeBadge.innerText = badgeText;
+            externalBtn.href = externalUrl;
+
+            iframe.src = url;
+
+            iframe.onload = () => {
+                setTimeout(() => {
+                    loader.classList.add("opacity-0", "pointer-events-none");
+                }, 300);
+            };
         }
 
-        // Fullscreen Toggle
+        // Mode Fullscreen
         function toggleFullScreen() {
-            const mapWrapper = document.getElementById('map-wrapper');
-            const icon = document.getElementById('fullscreen-icon');
-            const text = document.getElementById('fullscreen-text');
-
             if (!document.fullscreenElement) {
-                if (mapWrapper.requestFullscreen) {
-                    mapWrapper.requestFullscreen();
-                } else if (mapWrapper.webkitRequestFullscreen) { /* Safari */
-                    mapWrapper.webkitRequestFullscreen();
-                } else if (mapWrapper.msRequestFullscreen) { /* IE11 */
-                    mapWrapper.msRequestFullscreen();
-                }
-                icon.className = "fa-solid fa-compress mr-1.5 text-xs";
-                text.textContent = "Keluar Layar Penuh";
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Gagal mengaktifkan Layar Penuh: ${err.message}`);
+                });
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 }
-                icon.className = "fa-solid fa-expand mr-1.5 text-xs";
-                text.textContent = "Layar Penuh";
             }
         }
 
-        // Listen for Fullscreen Change (e.g. Esc key pressed)
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.addEventListener('msfullscreenchange', handleFullscreenChange);
-
-        function handleFullscreenChange() {
-            const icon = document.getElementById('fullscreen-icon');
-            const text = document.getElementById('fullscreen-text');
-
-            if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.msFullscreenElement) {
-                icon.className = "fa-solid fa-expand mr-1.5 text-xs";
-                text.textContent = "Layar Penuh";
-            }
-        }
-
-        // Initialize App
-        window.onload = function() {
-            renderLocationButtons();
-            // Set initial external link
-            document.getElementById('external-link-btn').href = locations[0].editUrl;
+        // Inisialisasi awal saat halaman selesai dimuat
+        window.onload = () => {
+            renderMainButtons();
+            selectMainLocation(1); // Default memuat DI CIBANTEN
         };
     </script>
 </body>
