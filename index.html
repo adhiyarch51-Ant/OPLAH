@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard MY MAP PAKET 1 & 2</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar styling for horizontal button bar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 flex flex-col h-screen overflow-hidden">
+
+    <!-- Compact Top Header -->
+    <header class="bg-slate-800/95 backdrop-blur border-b border-slate-700/80 px-4 py-2 shrink-0 z-30 shadow-md">
+        <div class="max-w-full mx-auto flex items-center justify-between">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-2.5">
+                <div class="p-1.5 bg-blue-600 rounded-md text-white shadow-sm shadow-blue-500/20">
+                    <i class="fa-solid fa-map-location-dot text-base"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm sm:text-base text-white tracking-wide leading-tight">MY MAP PAKET 1 & 2</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-400">Dashboard Pemantauan & Peta Lokasi Project</p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2">
+                <a id="external-link-btn" href="#" target="_blank" rel="noopener noreferrer" 
+                   class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 transition-all border border-slate-600">
+                    <i class="fa-solid fa-arrow-up-right-from-square mr-1.5 text-blue-400 text-xs"></i>
+                    <span class="hidden sm:inline">Buka Tab Baru</span>
+                    <span class="sm:hidden">Buka</span>
+                </a>
+                <button id="fullscreen-btn" onclick="toggleFullScreen()" 
+                        class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-sm">
+                    <i id="fullscreen-icon" class="fa-solid fa-expand mr-1.5 text-xs"></i>
+                    <span id="fullscreen-text" class="hidden sm:inline">Layar Penuh</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Compact Horizontal Buttons Navigation Bar -->
+    <div class="bg-slate-800/80 border-b border-slate-700/80 px-3 py-1.5 shrink-0 shadow-inner">
+        <div class="max-w-full mx-auto flex items-center gap-2">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider hidden lg:flex items-center gap-1.5 shrink-0 mr-1">
+                <i class="fa-solid fa-layer-group text-blue-400"></i> Lokasi:
+            </span>
+            
+            <nav id="location-buttons-container" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full py-0.5">
+                <!-- Dynamic Location Buttons injected here -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Map Display Section (Maximizes Remaining Space) -->
+    <main class="flex-1 w-full min-h-0 relative overflow-hidden">
+        <div id="map-wrapper" class="w-full h-full bg-slate-900 flex flex-col relative">
+            
+            <!-- Compact Active Map Info Bar -->
+            <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700 px-3 py-1.5 flex items-center justify-between z-10 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span id="current-location-title" class="font-semibold text-white text-xs sm:text-sm">DI CIBANTEN</span>
+                </div>
+                <span id="current-mid-badge" class="font-mono text-[10px] sm:text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-700/60">
+                    MID: 1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs
+                </span>
+            </div>
+
+            <!-- Loader Indicator -->
+            <div id="loading-spinner" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center transition-opacity duration-300">
+                <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                <span class="text-xs font-medium text-slate-300">Memuat Peta...</span>
+            </div>
+
+            <!-- Full Height Google Maps iframe -->
+            <div class="w-full flex-1 relative min-h-0">
+                <iframe id="map-frame" 
+                        src="https://www.google.com/maps/d/embed?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs" 
+                        class="absolute inset-0 w-full h-full border-0" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        title="Google My Maps Location"
+                        onload="hideLoading()">
+                </iframe>
+            </div>
+        </div>
+    </main>
+
+    <!-- Application Script -->
+    <script>
+        // Data Locations Configuration
+        const locations = [
+            {
+                id: 1,
+                name: "DI CIBANTEN",
+                mid: "1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs",
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs&usp=sharing",
+                icon: "fa-water"
+            },
+            {
+                id: 2,
+                name: "DI CIWAKA BAWAH",
+                mid: "1WllfuisO-Bczg1gGnpplO9fi-rNJu5w",
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1WllfuisO-Bczg1gGnpplO9fi-rNJu5w&usp=sharing",
+                icon: "fa-river"
+            },
+            {
+                id: 3,
+                name: "DI CIKALUMPANG",
+                mid: "1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs",
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs&usp=sharing",
+                icon: "fa-mountain-sun"
+            },
+            {
+                id: 4,
+                name: "DI CISAIT",
+                mid: "1qukq1JugOVPw-OSywdR1_o0E9KgzPVM",
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1qukq1JugOVPw-OSywdR1_o0E9KgzPVM&usp=sharing",
+                icon: "fa-compass-drafting"
+            },
+            {
+                id: 5,
+                name: "DI KALI KARAD",
+                mid: "1ggYMlgFLSUkIBOmP23lt1NPdJirAeys",
+                editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1ggYMlgFLSUkIBOmP23lt1NPdJirAeys&usp=sharing",
+                icon: "fa-bridge"
+            }
+        ];
+
+        let activeLocationId = 1;
+
+        // Render Location Buttons Horizontally
+        function renderLocationButtons() {
+            const container = document.getElementById('location-buttons-container');
+            container.innerHTML = '';
+
+            locations.forEach(loc => {
+                const isActive = loc.id === activeLocationId;
+                
+                const btn = document.createElement('button');
+                btn.onclick = () => selectLocation(loc.id);
+                btn.className = `flex-none px-3 py-1.5 rounded-md transition-all flex items-center space-x-2 text-xs whitespace-nowrap border ${
+                    isActive 
+                        ? 'bg-blue-600 text-white font-medium border-blue-400 shadow-md shadow-blue-600/30 ring-1 ring-blue-400' 
+                        : 'bg-slate-700/60 hover:bg-slate-700 text-slate-200 border-slate-600/60 hover:border-slate-500'
+                }`;
+
+                btn.innerHTML = `
+                    <i class="fa-solid ${loc.icon || 'fa-location-dot'} ${isActive ? 'text-white' : 'text-blue-400'} text-xs"></i>
+                    <span>${loc.name}</span>
+                `;
+
+                container.appendChild(btn);
+            });
+        }
+
+        // Select and Switch Map
+        function selectLocation(id) {
+            if (activeLocationId === id) return;
+            
+            const loc = locations.find(l => l.id === id);
+            if (!loc) return;
+
+            activeLocationId = id;
+            
+            // Show Loader
+            showLoading();
+
+            // Update Map Iframe URL
+            const iframe = document.getElementById('map-frame');
+            iframe.src = `https://www.google.com/maps/d/embed?mid=${loc.mid}`;
+
+            // Update Header Info
+            document.getElementById('current-location-title').textContent = loc.name;
+            document.getElementById('current-mid-badge').textContent = `MID: ${loc.mid}`;
+            document.getElementById('external-link-btn').href = loc.editUrl;
+
+            // Re-render Navigation Buttons to update Active State
+            renderLocationButtons();
+        }
+
+        // Loader Functions
+        function showLoading() {
+            const spinner = document.getElementById('loading-spinner');
+            spinner.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function hideLoading() {
+            const spinner = document.getElementById('loading-spinner');
+            spinner.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // Fullscreen Toggle
+        function toggleFullScreen() {
+            const mapWrapper = document.getElementById('map-wrapper');
+            const icon = document.getElementById('fullscreen-icon');
+            const text = document.getElementById('fullscreen-text');
+
+            if (!document.fullscreenElement) {
+                if (mapWrapper.requestFullscreen) {
+                    mapWrapper.requestFullscreen();
+                } else if (mapWrapper.webkitRequestFullscreen) { /* Safari */
+                    mapWrapper.webkitRequestFullscreen();
+                } else if (mapWrapper.msRequestFullscreen) { /* IE11 */
+                    mapWrapper.msRequestFullscreen();
+                }
+                icon.className = "fa-solid fa-compress mr-1.5 text-xs";
+                text.textContent = "Keluar Layar Penuh";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                icon.className = "fa-solid fa-expand mr-1.5 text-xs";
+                text.textContent = "Layar Penuh";
+            }
+        }
+
+        // Listen for Fullscreen Change (e.g. Esc key pressed)
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+        function handleFullscreenChange() {
+            const icon = document.getElementById('fullscreen-icon');
+            const text = document.getElementById('fullscreen-text');
+
+            if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.msFullscreenElement) {
+                icon.className = "fa-solid fa-expand mr-1.5 text-xs";
+                text.textContent = "Layar Penuh";
+            }
+        }
+
+        // Initialize App
+        window.onload = function() {
+            renderLocationButtons();
+            // Set initial external link
+            document.getElementById('external-link-btn').href = locations[0].editUrl;
+        };
+    </script>
+</body>
+</html>
