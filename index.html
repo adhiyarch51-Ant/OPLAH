@@ -98,7 +98,7 @@
                         class="absolute inset-0 w-full h-full border-0" 
                         allowfullscreen="" 
                         loading="lazy" 
-                        title="Google My Maps Location"
+                        title="Map / Virtual Tour Viewer"
                         onload="hideLoading()">
                 </iframe>
             </div>
@@ -112,6 +112,8 @@
             {
                 id: 1,
                 name: "DI CIBANTEN",
+                type: "mymaps",
+                url: "https://www.google.com/maps/d/embed?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs",
                 mid: "1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs",
                 editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1-TpEmArjz2hn6S7NYkoR7kheP3_hZFs&usp=sharing",
                 icon: "fa-water"
@@ -119,6 +121,8 @@
             {
                 id: 2,
                 name: "DI CIWAKA BAWAH",
+                type: "mymaps",
+                url: "https://www.google.com/maps/d/embed?mid=1WllfuisO-Bczg1gGnpplO9fi-rNJu5w",
                 mid: "1WllfuisO-Bczg1gGnpplO9fi-rNJu5w",
                 editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1WllfuisO-Bczg1gGnpplO9fi-rNJu5w&usp=sharing",
                 icon: "fa-river"
@@ -126,6 +130,8 @@
             {
                 id: 3,
                 name: "DI CIKALUMPANG",
+                type: "mymaps",
+                url: "https://www.google.com/maps/d/embed?mid=1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs",
                 mid: "1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs",
                 editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1UwBr4_itmCDq8-Sr2UXeZupPtsQoZOs&usp=sharing",
                 icon: "fa-mountain-sun"
@@ -133,6 +139,8 @@
             {
                 id: 4,
                 name: "DI CISAIT",
+                type: "mymaps",
+                url: "https://www.google.com/maps/d/embed?mid=1qukq1JugOVPw-OSywdR1_o0E9KgzPVM",
                 mid: "1qukq1JugOVPw-OSywdR1_o0E9KgzPVM",
                 editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1qukq1JugOVPw-OSywdR1_o0E9KgzPVM&usp=sharing",
                 icon: "fa-compass-drafting"
@@ -140,9 +148,20 @@
             {
                 id: 5,
                 name: "DI KALI KARAD",
+                type: "mymaps",
+                url: "https://www.google.com/maps/d/embed?mid=1ggYMlgFLSUkIBOmP23lt1NPdJirAeys",
                 mid: "1ggYMlgFLSUkIBOmP23lt1NPdJirAeys",
                 editUrl: "https://www.google.com/maps/d/u/4/edit?mid=1ggYMlgFLSUkIBOmP23lt1NPdJirAeys&usp=sharing",
                 icon: "fa-bridge"
+            },
+            {
+                id: 6,
+                name: "360",
+                type: "kuula",
+                url: "https://kuula.co/share/collection/7dlvr?logo=1&info=1&fs=1&vr=0&sd=1&thumbs=1",
+                mid: "KUULA-360-TOUR",
+                editUrl: "https://kuula.co/share/collection/7dlvr?logo=1&info=1&fs=1&vr=0&sd=1&thumbs=1",
+                icon: "fa-vr-cardboard"
             }
         ];
 
@@ -173,7 +192,7 @@
             });
         }
 
-        // Select and Switch Map
+        // Select and Switch Map / Virtual Tour
         function selectLocation(id) {
             if (activeLocationId === id) return;
             
@@ -185,13 +204,13 @@
             // Show Loader
             showLoading();
 
-            // Update Map Iframe URL
+            // Update Frame URL
             const iframe = document.getElementById('map-frame');
-            iframe.src = `https://www.google.com/maps/d/embed?mid=${loc.mid}`;
+            iframe.src = loc.url;
 
             // Update Header Info
             document.getElementById('current-location-title').textContent = loc.name;
-            document.getElementById('current-mid-badge').textContent = `MID: ${loc.mid}`;
+            document.getElementById('current-mid-badge').textContent = loc.type === 'kuula' ? 'VIRTUAL TOUR 360°' : `MID: ${loc.mid}`;
             document.getElementById('external-link-btn').href = loc.editUrl;
 
             // Re-render Navigation Buttons to update Active State
