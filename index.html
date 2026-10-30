@@ -1,20 +1,56 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MyMap Paket 1 & 2</title>
+    <title>Dashboard MyMap Paket 1 & 2 + 360 Studio</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0088ff',
+                            600: '#0066cc',
+                            700: '#004fb3',
+                            900: '#002666',
+                        },
+                        dark: {
+                            bg: '#0b0f17',
+                            card: '#151c28',
+                            border: '#232d3f',
+                            hover: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Pannellum Viewer CSS & JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"></script>
+
+    <!-- Leaflet CSS & JS for Key Plan Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar horizontal untuk tombol navigasi */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -22,12 +58,68 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        /* Pannellum overrides */
+        .pnm-controls-container {
+            display: none !important;
+        }
+        /* Leaflet Map Styling */
+        #keyPlanMap {
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 10;
+        }
+        .leaflet-container {
+            background-color: #0f172a !important;
+            border-radius: 0.75rem;
+        }
+        /* Radar FOV Cone style for Key Plan Map */
+        .radar-cone {
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-bottom: 32px solid rgba(0, 136, 255, 0.45);
+            position: absolute;
+            top: -18px;
+            left: -10px;
+            transform-origin: 50% 100%;
+            pointer-events: none;
+            transition: transform 0.1s linear;
+        }
+        .custom-hotspot {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: rgba(0, 136, 255, 0.85);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(0, 136, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        .custom-hotspot:hover {
+            transform: scale(1.25);
+            background: #0088ff;
+            box-shadow: 0 0 20px rgba(0, 136, 255, 1);
+        }
+        .custom-hotspot-info {
+            background: rgba(234, 179, 8, 0.85);
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.8);
+        }
+        .custom-hotspot-info:hover {
+            background: #eab308;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 1);
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden">
 
     <!-- HEADER & TOOLBAR CONTAINER -->
-    <header class="bg-slate-800 border-b border-slate-700 shadow-md flex-none">
+    <header class="bg-slate-800 border-b border-slate-700 shadow-md flex-none z-30">
         <div class="px-3 py-2 flex flex-col md:flex-row md:items-center justify-between gap-2">
             
             <!-- LOGO & BRANDING -->
@@ -37,7 +129,7 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold leading-tight tracking-wide text-white">MY MAP PAKET 1 & 2</h1>
-                    <p class="text-xs text-slate-400">Pusat Navigasi & Monitoring Lokasi Proyek</p>
+                    <p class="text-xs text-slate-400">Pusat Navigasi, GIS & 360° Studio Monitoring</p>
                 </div>
             </div>
 
@@ -50,7 +142,7 @@
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     <span class="text-slate-400">Lokasi:</span>
-                    <span id="activeBadge" class="font-semibold text-blue-400 uppercase">DI CIBANTEN</span>
+                    <span id="activeBadge" class="font-semibold text-blue-400 uppercase">360° VIEWER STUDIO</span>
                 </div>
 
                 <div class="flex items-center gap-1.5">
@@ -74,7 +166,7 @@
         <!-- MAIN LOCATION BUTTONS (HORIZONTAL BAR) -->
         <div class="bg-slate-850 px-3 py-1.5 border-t border-slate-700/80 flex items-center gap-2 overflow-x-auto no-scrollbar">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
-                <i class="fa-solid fa-layer-group text-blue-400"></i> Peta:
+                <i class="fa-solid fa-layer-group text-blue-400"></i> Navigasi:
             </span>
             <div id="mainButtonContainer" class="flex items-center gap-1.5">
                 <!-- Main buttons rendered dynamically -->
@@ -82,7 +174,7 @@
         </div>
 
         <!-- SUB 360 NAV BAR (Muncul Hanya Saat Mode 360 Aktif) -->
-        <div id="sub360Bar" class="hidden bg-slate-900/90 border-t border-blue-900/50 px-3 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <div id="sub360Bar" class="bg-slate-900/90 border-t border-blue-900/50 px-3 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
             <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
                 <i class="fa-solid fa-vr-cardboard"></i> Opsi 360°:
             </span>
@@ -92,27 +184,229 @@
         </div>
     </header>
 
-    <!-- MAP / VIRTUAL TOUR VIEW AREA -->
-    <main class="flex-1 relative bg-slate-950 w-full h-full overflow-hidden">
-        <!-- Loading Indicator -->
-        <div id="mapLoader" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 transition-opacity duration-300">
+    <!-- CONTENT DISPLAY AREA (SWITCHABLE BETWEEN IFRAME & INTERACTIVE 360 STUDIO) -->
+    <main class="flex-1 relative bg-slate-950 w-full h-full overflow-hidden flex">
+        
+        <!-- Loading Indicator for Iframe Embeds -->
+        <div id="mapLoader" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-20 transition-opacity duration-300 opacity-0 pointer-events-none">
             <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
             <p id="loaderText" class="text-slate-300 text-sm font-medium">Memuat peta interaktif...</p>
         </div>
 
-        <!-- Main Iframe Container -->
+        <!-- MODE 1: EXTERNAL IFRAME CONTAINER (GOOGLE MYMAPS, KUULA, MOMENTO360) -->
         <iframe id="mapFrame" 
             src="" 
-            class="w-full h-full border-0 relative z-0"
+            class="hidden w-full h-full border-0 relative z-0"
             allowfullscreen 
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade">
         </iframe>
+
+        <!-- MODE 2: INTEGRATED 360 VIEWER STUDIO CONTAINER -->
+        <div id="studio360View" class="flex-1 flex flex-col md:flex-row h-full w-full relative z-10 bg-dark-bg">
+            
+            <!-- Studio Sidebar / Control Panel -->
+            <aside id="sidebarStudio" class="w-full md:w-80 bg-dark-card border-r border-dark-border flex flex-col h-full z-20 shrink-0">
+                <div class="p-3 border-b border-dark-border flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center text-white shadow-md">
+                            <i class="fa-solid fa-compass text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-xs text-white tracking-wide">360° Viewer Studio</h2>
+                            <p class="text-[10px] text-slate-400">Interactive VR & Telemetry</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
+
+                    <!-- 1. DRAG AND DROP / MULTIPLE FILE UPLOAD ZONE -->
+                    <div class="bg-dark-bg/80 p-2.5 rounded-xl border border-dark-border">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-cloud-arrow-up text-brand-500"></i> Upload Panorama
+                            </label>
+                            <span class="text-[9px] text-brand-500 font-mono">Multiple</span>
+                        </div>
+                        <div class="relative" id="dropZone">
+                            <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple class="hidden">
+                            <div onclick="document.getElementById('fileInput').click()" 
+                                 id="uploadBox"
+                                 class="w-full py-2.5 px-2 bg-dark-card hover:bg-dark-hover border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-lg text-slate-300 hover:text-white transition-all cursor-pointer text-center flex flex-col items-center justify-center group">
+                                <i class="fa-solid fa-file-image text-slate-400 group-hover:text-brand-500 text-lg mb-1 transition-colors"></i>
+                                <span class="text-[11px] font-semibold">Tarik & Lepas / Pilih File</span>
+                                <span class="text-[9px] text-slate-400 mt-0.5">(.JPG, .PNG, .WEBP)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. PRESET GALLERY -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-images text-brand-500"></i> Galeri Panorama
+                            </label>
+                            <span class="text-[10px] bg-slate-800 text-brand-400 font-mono px-2 py-0.5 rounded-full border border-dark-border" id="presetCount">1 Item</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1" id="galleryGrid">
+                            <!-- Dynamic preset cards populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- KEY PLAN MAP PANEL -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-map-location-dot text-brand-500"></i> Key Plan Map
+                            </label>
+                            <span id="mapCoords" class="text-[9px] text-slate-400 font-mono">-23.02, -67.75</span>
+                        </div>
+                        <div class="h-36 w-full rounded-xl overflow-hidden border border-dark-border relative shadow-inner bg-slate-900">
+                            <div id="keyPlanMap"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. LIVE TELEMETRY PANEL -->
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-chart-simple text-brand-500"></i> Telemetri & Metadata
+                        </label>
+                        <div class="bg-dark-bg/80 rounded-xl p-2.5 border border-dark-border space-y-1.5 text-[11px]">
+                            <div class="flex justify-between items-center border-b border-dark-border/60 pb-1">
+                                <span class="text-slate-400">Judul:</span>
+                                <span id="infoTitle" class="font-medium text-white truncate max-w-[120px] text-right">Alma Observatory</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-dark-border/60 pb-1">
+                                <span class="text-slate-400">Dimensi:</span>
+                                <span id="infoResolution" class="font-mono text-emerald-400">Loading...</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-dark-border/60 pb-1">
+                                <span class="text-slate-400">Ukuran:</span>
+                                <span id="infoFileSize" class="font-mono text-slate-300">3.2 MB</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-dark-border/60 pb-1">
+                                <span class="text-slate-400">Pitch (Vertikal):</span>
+                                <span id="infoPitch" class="font-mono text-brand-500 font-semibold">0.00°</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-dark-border/60 pb-1">
+                                <span class="text-slate-400">Yaw (Horizontal):</span>
+                                <span id="infoYaw" class="font-mono text-brand-500 font-semibold">0.00°</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">FOV:</span>
+                                <span id="infoFov" class="font-mono text-cyan-400 font-semibold">100.00°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. CONTROLS -->
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-sliders text-brand-500"></i> Kontrol Studio
+                        </label>
+                        
+                        <!-- Auto Rotate Toggle -->
+                        <div class="flex items-center justify-between bg-dark-bg/80 p-2 rounded-xl border border-dark-border">
+                            <span class="text-[11px] font-medium text-slate-300">Auto Rotate</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="autoRotateToggle" class="sr-only peer">
+                                <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-brand-500"></div>
+                            </label>
+                        </div>
+
+                        <!-- Auto Rotate Speed Slider -->
+                        <div class="space-y-1 bg-dark-bg/80 p-2 rounded-xl border border-dark-border">
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-400">Kecepatan Rotasi</span>
+                                <span id="speedValue" class="text-brand-500 font-mono font-medium">2.0°/s</span>
+                            </div>
+                            <input type="range" id="rotateSpeedSlider" min="-10" max="10" step="0.5" value="2" 
+                                   class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                        </div>
+
+                        <!-- Hotspots Toggle -->
+                        <div class="flex items-center justify-between bg-dark-bg/80 p-2 rounded-xl border border-dark-border">
+                            <span class="text-[11px] font-medium text-slate-300">Tampilkan Hotspots</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="hotspotToggle" checked class="sr-only peer">
+                                <div class="w-8 h-4.5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-brand-500"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </aside>
+
+            <!-- Main Panorama Viewer Container -->
+            <div class="flex-1 relative flex flex-col h-full bg-black overflow-hidden">
+                <!-- Floating Header Overlay Bar -->
+                <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none">
+                    <div class="bg-dark-card/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-dark-border/80 shadow-xl flex items-center gap-2 pointer-events-auto">
+                        <span class="flex h-2 w-2 relative">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span id="currentPanoTitle" class="text-xs font-semibold text-white tracking-wide">Alma Observatory</span>
+                    </div>
+
+                    <!-- Toolbar Overlay Buttons -->
+                    <div class="bg-dark-card/90 backdrop-blur-md p-1 rounded-xl border border-dark-border/80 shadow-xl flex items-center space-x-1 pointer-events-auto">
+                        <button id="btnResetView" title="Reset View Angle" class="p-1.5 hover:bg-dark-hover rounded-lg text-slate-300 hover:text-white transition-colors">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <div class="w-px h-3 bg-slate-700"></div>
+                        <button id="btnZoomIn" title="Zoom In" class="p-1.5 hover:bg-dark-hover rounded-lg text-slate-300 hover:text-white transition-colors">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                        <button id="btnZoomOut" title="Zoom Out" class="p-1.5 hover:bg-dark-hover rounded-lg text-slate-300 hover:text-white transition-colors">
+                            <i class="fa-solid fa-minus text-xs"></i>
+                        </button>
+                        <div class="w-px h-3 bg-slate-700"></div>
+                        <button id="btnFullscreenStudio" title="Full Screen Studio" class="p-1.5 hover:bg-dark-hover rounded-lg text-brand-500 hover:text-brand-400 transition-colors">
+                            <i class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pannellum Container -->
+                <div id="panoramaContainer" class="w-full h-full relative">
+                    <div id="panorama" class="w-full h-full"></div>
+                    
+                    <!-- Studio Loading Overlay -->
+                    <div id="studioLoadingOverlay" class="absolute inset-0 bg-dark-bg/90 backdrop-blur-sm flex flex-col items-center justify-center z-30 transition-opacity duration-300">
+                        <div class="w-8 h-8 border-4 border-brand-500/20 border-t-brand-500 rounded-full animate-spin mb-2"></div>
+                        <p class="text-xs font-medium text-slate-200" id="studioLoadingText">Memuat Studio Panorama 360°...</p>
+                    </div>
+                </div>
+
+                <!-- Bottom Quick Switcher Bar -->
+                <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20 pointer-events-auto max-w-[90%] sm:max-w-auto">
+                    <div class="bg-dark-card/90 backdrop-blur-md px-2 py-1 rounded-2xl border border-dark-border/80 shadow-2xl flex items-center space-x-1.5 overflow-x-auto no-scrollbar" id="bottomBarPresets">
+                        <!-- Dynamic Quick Switcher Buttons -->
+                    </div>
+                </div>
+
+                <!-- Info Spot Modal -->
+                <div id="infoModal" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 bg-dark-card/95 backdrop-blur-lg border border-dark-border p-4 rounded-2xl shadow-2xl max-w-xs w-full text-center space-y-2">
+                    <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center mx-auto text-sm">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <h3 id="modalTitle" class="font-bold text-white text-xs">Info Spot</h3>
+                    <p id="modalDesc" class="text-[11px] text-slate-300">Deskripsi rinci objek.</p>
+                    <button onclick="document.getElementById('infoModal').classList.add('hidden')" class="w-full py-1 bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs rounded-lg transition-colors">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
     </main>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT APP LOGIC -->
     <script>
-        // Data Utama MyMaps
+        // Data Utama Navigasi Peta & Tour
         const locations = [
             {
                 id: 1,
@@ -146,13 +440,20 @@
             },
             {
                 id: 6,
-                name: "360",
+                name: "360° TOUR",
                 is360Group: true
             }
         ];
 
-        // Daftar lokasi khusus 360 (Cisait Kuula, Kali Karad 1 & 2 Momento360)
+        // Daftar Sub-Opsi 360° (360 Studio + Embed Kuula/Momento)
         const sub360Locations = [
+            {
+                id: "360-studio",
+                name: "360 VIEWER STUDIO",
+                isStudio: true,
+                badge: "360° VIEWER STUDIO",
+                editUrl: "#"
+            },
             {
                 id: "360-cisait",
                 name: "DI CISAIT",
@@ -176,13 +477,80 @@
             }
         ];
 
-        let activeLocationId = 1;
-        let activeSub360Id = "360-cisait";
+        let activeLocationId = 6; // Default to 360 Tour
+        let activeSub360Id = "360-studio"; // Default to built-in Studio
 
-        // Render Tombol Utama
+        // ----------------------------------------------------
+        // 360 VIEWER STUDIO ENGINE & PRESETS DATA
+        // ----------------------------------------------------
+        let PRESETS = [
+            {
+                id: 'alma-obs',
+                title: 'Alma Observatory',
+                url: 'https://pannellum.org/images/alma.jpg',
+                pitch: -3,
+                yaw: 117,
+                hfov: 100,
+                lat: -23.0229,
+                lng: -67.7550,
+                isCustom: false,
+                fileInfo: '3.2 MB',
+                uploadTime: 'System Preset',
+                resolution: '4000 x 2000 px',
+                hotspots: [
+                    {
+                        pitch: -2.1,
+                        yaw: 132.9,
+                        type: 'info',
+                        text: 'Teleskop ALMA',
+                        modalDesc: 'Atacama Large Millimeter/submillimeter Array di Chili.'
+                    }
+                ]
+            }
+        ];
+
+        let viewer = null;
+        let activePreset = PRESETS[0];
+        let showHotspots = true;
+        let keyMap = null;
+        let mapMarker = null;
+        let radarConeEl = null;
+
+        // DOM Elements
+        const mainButtonContainer = document.getElementById("mainButtonContainer");
+        const sub360ButtonContainer = document.getElementById("sub360ButtonContainer");
+        const sub360Bar = document.getElementById("sub360Bar");
+        const mapFrame = document.getElementById("mapFrame");
+        const studio360View = document.getElementById("studio360View");
+        const mapLoader = document.getElementById("mapLoader");
+        const activeBadge = document.getElementById("activeBadge");
+        const externalBtn = document.getElementById("externalLinkBtn");
+        const loaderText = document.getElementById("loaderText");
+
+        // Studio DOM Elements
+        const studioLoadingOverlay = document.getElementById('studioLoadingOverlay');
+        const studioLoadingText = document.getElementById('studioLoadingText');
+        const galleryGrid = document.getElementById('galleryGrid');
+        const bottomBarPresets = document.getElementById('bottomBarPresets');
+        const presetCount = document.getElementById('presetCount');
+        const infoTitle = document.getElementById('infoTitle');
+        const infoResolution = document.getElementById('infoResolution');
+        const infoFileSize = document.getElementById('infoFileSize');
+        const infoPitch = document.getElementById('infoPitch');
+        const infoYaw = document.getElementById('infoYaw');
+        const infoFov = document.getElementById('infoFov');
+        const mapCoords = document.getElementById('mapCoords');
+        const currentPanoTitle = document.getElementById('currentPanoTitle');
+        const autoRotateToggle = document.getElementById('autoRotateToggle');
+        const rotateSpeedSlider = document.getElementById('rotateSpeedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const hotspotToggle = document.getElementById('hotspotToggle');
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+
+        // Render Tombol Navigasi Utama
         function renderMainButtons() {
-            const container = document.getElementById("mainButtonContainer");
-            container.innerHTML = "";
+            mainButtonContainer.innerHTML = "";
 
             locations.forEach(loc => {
                 const btn = document.createElement("button");
@@ -205,14 +573,13 @@
                 }
 
                 btn.onclick = () => selectMainLocation(loc.id);
-                container.appendChild(btn);
+                mainButtonContainer.appendChild(btn);
             });
         }
 
         // Render Sub-Tombol 360
         function renderSub360Buttons() {
-            const container = document.getElementById("sub360ButtonContainer");
-            container.innerHTML = "";
+            sub360ButtonContainer.innerHTML = "";
 
             sub360Locations.forEach(sub => {
                 const btn = document.createElement("button");
@@ -223,19 +590,18 @@
                         ? "bg-amber-500 text-slate-950 shadow font-bold"
                         : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700"
                 }`;
-                btn.innerHTML = `<i class="fa-solid fa-camera-retro ${isActive ? 'text-slate-950' : 'text-amber-400'}"></i> ${sub.name}`;
+                btn.innerHTML = `<i class="fa-solid ${sub.isStudio ? 'fa-compass' : 'fa-camera-retro'} ${isActive ? 'text-slate-950' : 'text-amber-400'}"></i> ${sub.name}`;
 
                 btn.onclick = () => selectSub360(sub.id);
-                container.appendChild(btn);
+                sub360ButtonContainer.appendChild(btn);
             });
         }
 
-        // Pilih Lokasi Utama
+        // Pilih Lokasi Utama (Peta MyMaps vs Group 360)
         function selectMainLocation(id) {
             activeLocationId = id;
             renderMainButtons();
 
-            const sub360Bar = document.getElementById("sub360Bar");
             const loc = locations.find(l => l.id === id);
 
             if (loc.is360Group) {
@@ -244,47 +610,58 @@
                 selectSub360(activeSub360Id);
             } else {
                 sub360Bar.classList.add("hidden");
+                studio360View.classList.add("hidden");
+                mapFrame.classList.remove("hidden");
                 
                 const embedUrl = `https://www.google.com/maps/d/embed?mid=${loc.mid}&ehbc=2E312F`;
                 loadIframe(embedUrl, loc.name, loc.editUrl);
             }
         }
 
-        // Pilih Sub-360 Lokasi
+        // Pilih Sub-360 Opsi (Studio Interactive vs Kuula/Momento)
         function selectSub360(subId) {
             activeSub360Id = subId;
             renderSub360Buttons();
 
             const sub = sub360Locations.find(s => s.id === subId);
-            if (sub) {
+            if (!sub) return;
+
+            activeBadge.innerText = sub.badge;
+            externalBtn.href = sub.editUrl;
+
+            if (sub.isStudio) {
+                mapFrame.classList.add("hidden");
+                studio360View.classList.remove("hidden");
+                
+                // Recalculate Leaflet map size after displaying Studio tab
+                setTimeout(() => {
+                    if (keyMap) keyMap.invalidateSize();
+                }, 200);
+            } else {
+                studio360View.classList.add("hidden");
+                mapFrame.classList.remove("hidden");
                 loadIframe(sub.url, sub.badge, sub.editUrl);
             }
         }
 
         // Panggil Iframe dengan loader
         function loadIframe(url, badgeText, externalUrl) {
-            const iframe = document.getElementById("mapFrame");
-            const loader = document.getElementById("mapLoader");
-            const activeBadge = document.getElementById("activeBadge");
-            const externalBtn = document.getElementById("externalLinkBtn");
-            const loaderText = document.getElementById("loaderText");
-
             loaderText.innerText = `Memuat ${badgeText}...`;
-            loader.classList.remove("opacity-0", "pointer-events-none");
+            mapLoader.classList.remove("opacity-0", "pointer-events-none");
 
             activeBadge.innerText = badgeText;
             externalBtn.href = externalUrl;
 
-            iframe.src = url;
+            mapFrame.src = url;
 
-            iframe.onload = () => {
+            mapFrame.onload = () => {
                 setTimeout(() => {
-                    loader.classList.add("opacity-0", "pointer-events-none");
+                    mapLoader.classList.add("opacity-0", "pointer-events-none");
                 }, 300);
             };
         }
 
-        // Mode Fullscreen
+        // Mode Fullscreen Website
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -297,10 +674,368 @@
             }
         }
 
-        // Inisialisasi awal saat halaman selesai dimuat
+        // ----------------------------------------------------
+        // INTEGRATED 360 VIEWER STUDIO CORE FUNCTIONS
+        // ----------------------------------------------------
+
+        function initKeyPlanMap() {
+            const defaultLat = activePreset.lat || -23.0229;
+            const defaultLng = activePreset.lng || -67.7550;
+
+            const mapContainer = document.getElementById('keyPlanMap');
+            if (!mapContainer) return;
+
+            if (keyMap) {
+                keyMap.remove();
+            }
+
+            keyMap = L.map('keyPlanMap', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([defaultLat, defaultLng], 12);
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                crossOrigin: true
+            }).addTo(keyMap);
+
+            const customMarkerIcon = L.divIcon({
+                className: 'custom-map-pin',
+                html: `
+                    <div style="position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
+                        <div id="mapRadarCone" class="radar-cone"></div>
+                        <div style="width: 12px; height: 12px; background-color: #0088ff; border: 2px solid #ffffff; border-radius: 50%; box-shadow: 0 0 10px rgba(0,136,255,0.9); z-index: 20; position: relative;"></div>
+                    </div>
+                `,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            });
+
+            mapMarker = L.marker([defaultLat, defaultLng], { icon: customMarkerIcon }).addTo(keyMap);
+
+            keyMap.on('click', (e) => {
+                if (activePreset) {
+                    activePreset.lat = e.latlng.lat;
+                    activePreset.lng = e.latlng.lng;
+                    updateKeyPlanLocation(activePreset.lat, activePreset.lng);
+                }
+            });
+
+            setTimeout(() => {
+                if (keyMap) keyMap.invalidateSize();
+                radarConeEl = document.getElementById('mapRadarCone');
+            }, 500);
+        }
+
+        function updateKeyPlanLocation(lat, lng) {
+            if (!keyMap || !mapMarker) return;
+            const newPos = [lat || 0, lng || 0];
+            mapMarker.setLatLng(newPos);
+            keyMap.panTo(newPos);
+            keyMap.invalidateSize();
+            if (mapCoords) {
+                mapCoords.textContent = `${(lat || 0).toFixed(2)}, ${(lng || 0).toFixed(2)}`;
+            }
+        }
+
+        function loadPanorama(config) {
+            showStudioLoading(true, `Memuat ${config.title}...`);
+
+            updateKeyPlanLocation(config.lat, config.lng);
+
+            if (viewer) {
+                try { viewer.destroy(); } catch(e) {}
+            }
+
+            const formattedHotspots = (config.hotspots || []).map(hs => {
+                return {
+                    pitch: hs.pitch,
+                    yaw: hs.yaw,
+                    cssClass: 'custom-hotspot custom-hotspot-info',
+                    createTooltipFunc: (container) => {
+                        container.innerHTML = '<i class="fa-solid fa-info"></i>';
+                    },
+                    clickHandlerFunc: () => {
+                        openInfoModal(hs.text, hs.modalDesc);
+                    }
+                };
+            });
+
+            viewer = pannellum.viewer('panorama', {
+                type: 'equirectangular',
+                panorama: config.url,
+                autoLoad: true,
+                showControls: false,
+                pitch: config.pitch || 0,
+                yaw: config.yaw || 0,
+                hfov: config.hfov || 100,
+                minHfov: 40,
+                maxHfov: 120,
+                autoRotate: autoRotateToggle.checked ? parseFloat(rotateSpeedSlider.value) : 0,
+                hotSpots: showHotspots ? formattedHotspots : []
+            });
+
+            currentPanoTitle.textContent = config.title;
+            infoTitle.textContent = config.title;
+            infoResolution.textContent = config.resolution || 'Auto';
+            infoFileSize.textContent = config.fileInfo || 'N/A';
+
+            viewer.on('load', () => {
+                showStudioLoading(false);
+            });
+
+            viewer.on('error', (err) => {
+                showStudioLoading(true, 'Gagal memuat file gambar 360°');
+            });
+
+            setInterval(() => {
+                if (viewer) updateTelemetry();
+            }, 100);
+        }
+
+        function updateTelemetry() {
+            if (!viewer) return;
+            try {
+                const currentYaw = viewer.getYaw();
+                infoPitch.textContent = viewer.getPitch().toFixed(2) + '°';
+                infoYaw.textContent = currentYaw.toFixed(2) + '°';
+                infoFov.textContent = viewer.getHfov().toFixed(2) + '°';
+
+                if (!radarConeEl) radarConeEl = document.getElementById('mapRadarCone');
+                if (radarConeEl) radarConeEl.style.transform = `rotate(${currentYaw}deg)`;
+            } catch (e) {}
+        }
+
+        function showStudioLoading(show, text = 'Memuat...') {
+            studioLoadingText.textContent = text;
+            if (show) {
+                studioLoadingOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                studioLoadingOverlay.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function renderGalleryItems() {
+            galleryGrid.innerHTML = '';
+            presetCount.textContent = `${PRESETS.length} Item`;
+
+            PRESETS.forEach(preset => {
+                const isActive = preset.id === activePreset.id;
+                const card = document.createElement('div');
+                card.className = `p-1.5 rounded-xl border transition-all relative overflow-hidden group flex flex-col justify-between ${
+                    isActive 
+                    ? 'bg-brand-500/10 border-brand-500 text-white shadow-lg ring-1 ring-brand-500' 
+                    : 'bg-dark-bg/60 border-dark-border hover:border-slate-500 text-slate-300'
+                }`;
+
+                card.innerHTML = `
+                    <div class="cursor-pointer" onclick="selectPreset('${preset.id}')">
+                        <div class="h-12 w-full rounded-lg bg-slate-800 overflow-hidden mb-1 relative">
+                            <img src="${preset.url}" alt="${preset.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                                 onerror="this.src='https://placehold.co/300x150/1e293b/0088ff?text=360+View'">
+                        </div>
+                        <p class="font-semibold text-[11px] truncate leading-tight">${preset.title}</p>
+                    </div>
+
+                    ${preset.isCustom ? `
+                        <button onclick="deletePreset(event, '${preset.id}')" 
+                                title="Hapus Preset" 
+                                class="absolute top-1.5 right-1.5 w-5 h-5 rounded-md bg-red-600 hover:bg-red-500 text-white flex items-center justify-center text-[9px] shadow">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    ` : ''}
+                `;
+                galleryGrid.appendChild(card);
+            });
+        }
+
+        function renderBottomBarPresets() {
+            bottomBarPresets.innerHTML = '';
+            PRESETS.forEach(preset => {
+                const isActive = preset.id === activePreset.id;
+                const btn = document.createElement('button');
+                btn.className = `px-2.5 py-0.5 rounded-xl text-[11px] font-medium whitespace-nowrap transition-all flex items-center gap-1 ${
+                    isActive 
+                    ? 'bg-brand-500 text-white shadow-lg' 
+                    : 'bg-dark-hover/90 hover:bg-slate-700 text-slate-300'
+                }`;
+                btn.onclick = () => selectPreset(preset.id);
+                btn.innerHTML = `<i class="fa-solid ${preset.isCustom ? 'fa-cloud' : 'fa-panorama'} text-[9px]"></i> ${preset.title}`;
+                bottomBarPresets.appendChild(btn);
+            });
+        }
+
+        function selectPreset(id) {
+            const found = PRESETS.find(p => p.id === id);
+            if (found) {
+                activePreset = found;
+                renderGalleryItems();
+                renderBottomBarPresets();
+                loadPanorama(activePreset);
+            }
+        }
+
+        function deletePreset(event, id) {
+            event.stopPropagation();
+            const targetPreset = PRESETS.find(p => p.id === id);
+            if (!targetPreset) return;
+
+            if (targetPreset.url.startsWith('blob:')) {
+                URL.revokeObjectURL(targetPreset.url);
+            }
+
+            PRESETS = PRESETS.filter(p => p.id !== id);
+
+            if (activePreset.id === id) {
+                activePreset = PRESETS[0] || null;
+            }
+
+            renderGalleryItems();
+            renderBottomBarPresets();
+            if (activePreset) {
+                loadPanorama(activePreset);
+            }
+        }
+
+        function handleFilesUpload(files) {
+            if (!files || files.length === 0) return;
+
+            const uploadTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            Array.from(files).forEach((file, idx) => {
+                if (!file.type.startsWith('image/')) return;
+
+                showStudioLoading(true, `Proses ${file.name}...`);
+
+                const formattedSize = file.size > 1024 * 1024 
+                    ? (file.size / (1024 * 1024)).toFixed(1) + ' MB' 
+                    : (file.size / 1024).toFixed(0) + ' KB';
+
+                const imageUrl = URL.createObjectURL(file);
+                
+                const img = new Image();
+                img.onload = function() {
+                    const dimensionStr = `${img.width} x ${img.height} px`;
+
+                    const newPreset = {
+                        id: 'custom-' + Date.now() + '-' + idx,
+                        title: file.name.replace(/\.[^/.]+$/, ""),
+                        url: imageUrl,
+                        pitch: 0,
+                        yaw: 0,
+                        hfov: 100,
+                        lat: -6.2088 + (Math.random() - 0.5) * 0.05,
+                        lng: 106.8456 + (Math.random() - 0.5) * 0.05,
+                        isCustom: true,
+                        fileInfo: formattedSize,
+                        uploadTime: uploadTime,
+                        resolution: dimensionStr,
+                        hotspots: []
+                    };
+
+                    PRESETS.unshift(newPreset);
+                    activePreset = newPreset;
+
+                    renderGalleryItems();
+                    renderBottomBarPresets();
+                    loadPanorama(newPreset);
+                };
+                img.src = imageUrl;
+            });
+
+            fileInput.value = '';
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            handleFilesUpload(e.target.files);
+        });
+
+        function setupDragAndDrop() {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    document.getElementById('uploadBox').classList.add('border-brand-500', 'bg-brand-500/10');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    document.getElementById('uploadBox').classList.remove('border-brand-500', 'bg-brand-500/10');
+                }, false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                handleFilesUpload(dt.files);
+            }, false);
+        }
+
+        autoRotateToggle.addEventListener('change', (e) => {
+            if (viewer) {
+                const speed = parseFloat(rotateSpeedSlider.value);
+                viewer.startAutoRotate(e.target.checked ? speed : 0);
+            }
+        });
+
+        rotateSpeedSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            speedValue.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(1)}°/s`;
+            if (viewer && autoRotateToggle.checked) {
+                viewer.startAutoRotate(val);
+            }
+        });
+
+        hotspotToggle.addEventListener('change', (e) => {
+            showHotspots = e.target.checked;
+            loadPanorama(activePreset);
+        });
+
+        document.getElementById('btnResetView').addEventListener('click', () => {
+            if (viewer && activePreset) {
+                viewer.setPitch(activePreset.pitch || 0);
+                viewer.setYaw(activePreset.yaw || 0);
+                viewer.setHfov(activePreset.hfov || 100);
+            }
+        });
+
+        document.getElementById('btnZoomIn').addEventListener('click', () => {
+            if (viewer) viewer.setHfov(viewer.getHfov() - 10);
+        });
+
+        document.getElementById('btnZoomOut').addEventListener('click', () => {
+            if (viewer) viewer.setHfov(viewer.getHfov() + 10);
+        });
+
+        document.getElementById('btnFullscreenStudio').addEventListener('click', () => {
+            if (viewer) viewer.toggleFullscreen();
+        });
+
+        function openInfoModal(title, desc) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalDesc').textContent = desc || 'Informasi detail lokasi panorama.';
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+
+        // INIT APP ON LOAD
         window.onload = () => {
             renderMainButtons();
-            selectMainLocation(1); // Default memuat DI CIBANTEN
+            renderSub360Buttons();
+            
+            // Initial Studio Boot
+            initKeyPlanMap();
+            renderGalleryItems();
+            renderBottomBarPresets();
+            loadPanorama(activePreset);
+            setupDragAndDrop();
+
+            // Default start at 360 Tour group -> 360 Studio
+            selectMainLocation(6);
         };
     </script>
 </body>
